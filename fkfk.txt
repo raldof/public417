@@ -1,0 +1,32 @@
+static SCL_Record getFirstMovesProcess(SCL_Record chessgame, int halfmoves){
+  /*
+    init le record
+    boucle get move et ensuite add move, 
+    return le record + checker si halfmove sont bon
+  /
+  SCL_Record *newRecord;
+  SCL_recordInit(&newRecord);
+  uint16_t recordLength =  SCL_recordLength(&chessgame);
+  for(int i = 0 ; i < &recordLength ; i++){
+    uint8_t *squareForm;
+    uint8_t *squareTo;
+    char *promotedPiece;
+    uint8_t *move = SCL_recordGetMove(&chessgame,i,&squareForm,&squareTo,&promotedPiece)
+    SCL_recordAdd(&newRecord,&squareForm,&squareTo,&promotedPiece,&move);
+  }
+  return newRecord;
+
+}
+PG_FUNCTION_INFO_V1(getFirstMoves);
+Datum
+getFirstMoves(PG_FUNCTION_ARGS)
+{
+
+  SCL_Record *chessGameRecord = PG_GETARG_ChessGame_P(0);
+  int halfmoves = PG_GETARG_ChessGame_P(1);
+  PG_RETURN_ChessGame_P(getFirstMovesProcess(chessGameRecord,halfmoves));
+}
+CREATE OR REPLACE FUNCTION getFirstMoves(internal)
+  RETURNS SCL_Record
+  AS 'MODULE_PATHNAME'
+  LANGUAGE C IMMUTABLE STRICT PARALLEL SAFE;
