@@ -16,23 +16,20 @@ CREATE OR REPLACE FUNCTION chessgame_out(chessgame)
   LANGUAGE C IMMUTABLE STRICT PARALLEL SAFE;
 
 
-CREATE OR REPLACE FUNCTION chessgame_recv(internal)
-  RETURNS chessgame
-  AS 'MODULE_PATHNAME'
-  LANGUAGE C IMMUTABLE STRICT PARALLEL SAFE;
-
-CREATE OR REPLACE FUNCTION hasOpening(chessgame,chessgame)
-  RETURNS boolean
-  AS 'MODULE_PATHNAME', 'hasOpening'
-  LANGUAGE C IMMUTABLE STRICT PARALLEL SAFE;
+--CREATE OR REPLACE FUNCTION chessgame_recv(internal)
+  --RETURNS chessgame
+  --AS 'MODULE_PATHNAME'
+  --LANGUAGE C IMMUTABLE STRICT PARALLEL SAFE;
 
 CREATE OR REPLACE FUNCTION getFirstMoves(chessgame,integer)
   RETURNS chessgame
   AS 'MODULE_PATHNAME', 'getFirstMoves'
   LANGUAGE C IMMUTABLE STRICT PARALLEL SAFE;
 
-
-
+CREATE OR REPLACE FUNCTION getBoundedGame(chessgame)
+  RETURNS chessgame
+  AS 'MODULE_PATHNAME', 'getBoundedGame'
+  LANGUAGE C IMMUTABLE STRICT PARALLEL SAFE;
 
 CREATE OR REPLACE FUNCTION chessboard_in(cstring)
   RETURNS chessboard
@@ -105,7 +102,7 @@ CREATE OR REPLACE FUNCTION chessgame_abs_ge(chessgame, chessgame)
   RETURNS boolean
   AS 'MODULE_PATHNAME'
   LANGUAGE C IMMUTABLE STRICT PARALLEL SAFE;
-[16:20]
+
 CREATE OPERATOR = (
   LEFTARG = chessgame, RIGHTARG = chessgame,
   PROCEDURE = chessgame_abs_eq,
@@ -131,12 +128,12 @@ CREATE OPERATOR > (
   PROCEDURE = chessgame_abs_gt,
   COMMUTATOR = <, NEGATOR = <=
 );
-[16:20]
+
 CREATE OR REPLACE FUNCTION chessgame_abs_cmp(chessgame, chessgame)
   RETURNS integer
   AS 'MODULE_PATHNAME'
   LANGUAGE C IMMUTABLE STRICT PARALLEL SAFE;
-[16:20]
+
 CREATE OPERATOR CLASS chessgame_abs_ops
 DEFAULT FOR TYPE chessgame USING btree
 AS
@@ -147,3 +144,7 @@ AS
         OPERATOR        5       >  ,
         FUNCTION        1       chessgame_abs_cmp(chessgame, chessgame);
 
+CREATE OR REPLACE FUNCTION hasOpening(chessgame1 chessgame,chessgame2 chessgame)
+  RETURNS boolean as $$
+    SELECT $1 >= $2 AND $1 < getBoundedGame($2);
+  $$ LANGUAGE SQL;

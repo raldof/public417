@@ -462,7 +462,7 @@ int processPiece(char *c){
 
 /**  ereport(ERROR, (errcode(ERRCODE_INVALID_TEXT_REPRESENTATION),
   errmsg("%s %s",temp1,temp2))); */
-
+  /*
 static bool compareOpening(SCL_Record *c,SCL_Record *d){
   /*
   for( int i=0; i< SCL_recordLength(*d);i++){
@@ -474,12 +474,13 @@ static bool compareOpening(SCL_Record *c,SCL_Record *d){
       return 0;
     }
   }
-  return 1;*/
+  return 1;
   
   int firstCompare = chessgame_abs_cmp_internal(c,d);
   if(firstCompare < 0){
     return 0;
   }
+/*
   uint8_t source,destination;
   char promotion;
   int i = SCL_recordLength(d);
@@ -496,11 +497,32 @@ static bool compareOpening(SCL_Record *c,SCL_Record *d){
   SCL_recordRemoveLast(d); 
   SCL_recordAdd(d,source,processPiece(dummy2),promotion,endState);
 
+  bool forceCondition = 0;
   if(chessgame_abs_cmp_internal(c,d) >= 0 && !forceCondition){
     return 0;
   }
   return 1;
-}
+}*/
+
+static SCL_Record *getBoundGame(SCL_Record *d){
+  uint8_t source,destination;
+  char promotion;
+  int i = SCL_recordLength(d);
+  uint8_t endState = SCL_recordGetMove(*d,i-1,&source,&destination,&promotion);
+  char tempmove2[10] = "";
+  SCL_squareToString(destination,tempmove2);
+  /*bool forceCondition = 0;
+  if(strcmp(tempmove2,"h8") == 0){
+    forceCondition = 1;
+  }*/
+  char *supBorn2 = getNextMoveValue(tempmove2);
+  char dummy2[10] = "e2";
+  strcat(dummy2,supBorn2);
+  SCL_recordRemoveLast(d); 
+  SCL_recordAdd(d,source,processPiece(dummy2),promotion,endState);
+  return d;
+}  
+//Ss
 /**    ereport(ERROR, (errcode(ERRCODE_INVALID_TEXT_REPRESENTATION),
   errmsg("%s %d %s",ChessgameToStr(d), chessgame_abs_cmp_internal(c,d),ChessgameToStr(c))));*/
 static SCL_Record *getFirstMovesProcess(SCL_Record *chessgame, int halfmoves){
@@ -618,6 +640,7 @@ complex_recv(PG_FUNCTION_ARGS)
   PG_RETURN_ChessGame_P(c);
 }
 
+/* OLD WAY TO HASOPENING 
 PG_FUNCTION_INFO_V1(hasOpening);
 Datum
 hasOpening(PG_FUNCTION_ARGS)
@@ -626,7 +649,7 @@ hasOpening(PG_FUNCTION_ARGS)
 	SCL_Record *d = PG_GETARG_ChessGame_P(1);
   PG_RETURN_BOOL(compareOpening(c,d));
 }
-
+*/
 
 PG_FUNCTION_INFO_V1(getFirstMoves);
 Datum
@@ -717,6 +740,16 @@ getBoard(PG_FUNCTION_ARGS)
   /*ereport(ERROR, (errcode(ERRCODE_INVALID_TEXT_REPRESENTATION),
                     errmsg("b output:: ")));*/
   PG_RETURN_ChessBoard_P(boardFromRecord);
+}
+
+PG_FUNCTION_INFO_V1(getBoundedGame);
+Datum
+getBoundedGame(PG_FUNCTION_ARGS)
+{
+  SCL_Record *chessGameRecord = PG_GETARG_ChessGame_P(0);
+  /*ereport(ERROR, (errcode(ERRCODE_INVALID_TEXT_REPRESENTATION),
+                    errmsg("b output:: ")));*/
+  PG_RETURN_ChessBoard_P(getBoundGame(chessGameRecord));
 }
 
 /*---------------------------------*/
